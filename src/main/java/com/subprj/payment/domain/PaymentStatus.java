@@ -1,7 +1,9 @@
 package com.subprj.payment.domain;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+@Getter
 @RequiredArgsConstructor
 public enum PaymentStatus {
     NOT_STARTED("결제 시작전"),

@@ -18,7 +18,7 @@ public class CheckoutController {
     private final CheckoutUseCase checkoutUseCase;
 
     @GetMapping("/")
-    public Mono<CheckoutResult> checkoutPage(Model model, CheckoutDto.CheckoutRequest request) {
+    public Mono<String> checkoutPage(Model model, CheckoutDto.CheckoutRequest request) {
         CheckoutCommand command = CheckoutCommand.builder()
                 .cartId(request.getCartId())
                 .buyerId(request.getBuyerId())
@@ -30,7 +30,7 @@ public class CheckoutController {
             model.addAttribute("orderId", r.getOrderId());
             model.addAttribute("orderName", r.getOrderName());
             model.addAttribute("amount", r.getAmount());
-            return r;
+            return "checkout";
         });
     }
 }
