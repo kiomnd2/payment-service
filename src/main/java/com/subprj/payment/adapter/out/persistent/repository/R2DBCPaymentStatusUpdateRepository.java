@@ -1,6 +1,7 @@
 package com.subprj.payment.adapter.out.persistent.repository;
 
 import com.subprj.payment.adapter.out.persistent.exception.PaymentAlreadyProcessedException;
+import com.subprj.payment.application.port.out.PaymentStatusUpdateCommand;
 import com.subprj.payment.domain.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.util.Pair;
@@ -29,7 +30,35 @@ public class R2DBCPaymentStatusUpdateRepository implements PaymentStatusUpdateRe
                 .thenReturn(true);
     }
 
+    private Mono<Boolean> updatePaymentStatusToUnknown(PaymentStatusUpdateCommand command) {
+        return null;
+    }
 
+    private Mono<Boolean> updatePaymentStatusToFailure(PaymentStatusUpdateCommand command) {
+        return null;
+    }
+
+    private Mono<Boolean> updatePaymentStatusToSuccess(PaymentStatusUpdateCommand command) {
+        return null;
+    }
+
+
+    @Override
+    public Mono<Boolean> updatePaymentStatus(PaymentStatusUpdateCommand command) {
+        switch (command.getStatus()) {
+            case SUCCESS -> {
+                return updatePaymentStatusToSuccess(command);
+            }
+            case FAILURE -> {
+                return updatePaymentStatusToFailure(command);
+            }
+            case UNKNOWN -> {
+                return updatePaymentStatusToUnknown(command);
+            }
+            default ->
+                    throw new IllegalArgumentException(String.format("결제 상태 (status: %s 는 올바르지 않은 결제 상태입니다", command.getStatus().name()));
+        }
+    }
 
     private Mono<Long> updatePaymentOrderStatus(String orderId, PaymentStatus paymentStatus) {
         return databaseClient.sql(Query.UPDATE_PAYMENT_ORDER_STATUS)

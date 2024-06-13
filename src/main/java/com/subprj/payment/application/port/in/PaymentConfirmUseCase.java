@@ -5,6 +5,5 @@ import com.subprj.payment.domain.PaymentConfirmResult;
 import reactor.core.publisher.Mono;
 
 public interface PaymentConfirmUseCase {
-
     Mono<PaymentConfirmResult> confirm(PaymentConfirmCommand paymentConfirmCommand);
 }

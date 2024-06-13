@@ -3,6 +3,7 @@ package com.subprj.payment.application.service;
 import com.subprj.payment.adapter.common.annotation.UseCase;
 import com.subprj.payment.application.port.in.PaymentConfirmUseCase;
 import com.subprj.payment.application.port.out.PaymentExecutorPort;
+import com.subprj.payment.application.port.out.PaymentStatusUpdateCommand;
 import com.subprj.payment.application.port.out.PaymentStatusUpdatePort;
 import com.subprj.payment.application.port.out.PaymentValidationPort;
 import com.subprj.payment.domain.PaymentConfirmCommand;
@@ -19,12 +20,20 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
 
     @Override
     public Mono<PaymentConfirmResult> confirm(PaymentConfirmCommand paymentConfirmCommand) {
-        paymentStatusUpdatePort.updatePaymentStatusToExecuting(paymentConfirmCommand.getOrderId()
+        return paymentStatusUpdatePort.updatePaymentStatusToExecuting(paymentConfirmCommand.getOrderId()
                 , paymentConfirmCommand.getPaymentKey())
                 .filterWhen(v -> paymentValidationPort.isValid(paymentConfirmCommand.getOrderId()
                         , paymentConfirmCommand.getAmount()))
                 .flatMap(v -> paymentExecutorPort.execute(paymentConfirmCommand))
-                .flatMap(.)
+                .flatMap(v -> paymentStatusUpdatePort.updatePaymentStatus(
+                        PaymentStatusUpdateCommand.builder()
+                                .paymentKey(v.getPaymentKey())
+                                .orderId(v.getOrderId())
+                                .status(v.getPaymentStatus())
+                                .paymentExtraDetails(v.getExtraDetails())
+                                .failure(v.getFailure())
+                                .build()
+                )).map(v -> new PaymentConfirmResult())
         ;
     }
 }
