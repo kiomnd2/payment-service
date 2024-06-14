@@ -9,10 +9,12 @@ import com.subprj.payment.application.port.out.PaymentValidationPort;
 import com.subprj.payment.domain.PaymentConfirmCommand;
 import com.subprj.payment.domain.PaymentConfirmResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @UseCase
+@Service
 public class PaymentConfirmService implements PaymentConfirmUseCase {
     private final PaymentStatusUpdatePort paymentStatusUpdatePort;
     private final PaymentValidationPort paymentValidationPort;

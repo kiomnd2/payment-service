@@ -1,7 +1,9 @@
 package com.subprj.payment.domain;
 
 import lombok.Builder;
+import lombok.Getter;
 
+@Getter
 public class PaymentConfirmResult {
     private PaymentStatus status;
     private PaymentExecutionResult.PaymentExecutionFailure failure;

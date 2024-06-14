@@ -61,8 +61,9 @@ public class R2DBCPaymentDatabaseHelper implements PaymentDatabaseHelper {
 
     @Override
     public Mono<Void> clear() {
-        return deletePaymentOrder()
+        return deletePaymentOrderHistory()
                 .flatMap(v -> deletePaymentOrder())
+                .flatMap(v -> deletePaymentEvent())
                 .as(transactionalOperator::transactional)
                 .then();
     }
@@ -72,9 +73,16 @@ public class R2DBCPaymentDatabaseHelper implements PaymentDatabaseHelper {
     }
 
     private Mono<Long> deletePaymentEvent() {
-        return databaseClient.sql(Query.DELETE_PAYMENT_EVENT_QUERY).fetch().rowsUpdated();
+        return databaseClient.sql(Query.DELETE_PAYMENT_EVENT_QUERY)
+                .fetch()
+                .rowsUpdated();
     }
 
+    private Mono<Long> deletePaymentOrderHistory() {
+        return databaseClient.sql(Query.DELETE_PAYMENT_ORDER_HISTORY_QUERY)
+                .fetch()
+                .rowsUpdated();
+    }
 
     public static class Query {
         static String SELECT_PAYMENT_QUERY = """
@@ -90,5 +98,10 @@ public class R2DBCPaymentDatabaseHelper implements PaymentDatabaseHelper {
         static String DELETE_PAYMENT_ORDER_QUERY = """
         DELETE FROM payment_orders
         """.trim();
+
+        static String DELETE_PAYMENT_ORDER_HISTORY_QUERY =
+                """
+                DELETE FROM payment_order_histories
+                """.trim();
     }
 }

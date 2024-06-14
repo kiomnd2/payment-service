@@ -135,12 +135,13 @@ public class R2DBCPaymentStatusUpdateRepository implements PaymentStatusUpdateRe
                     switch (paymentOrder.getSecond()) {
                         case NOT_STARTED, EXECUTING, UNKNOWN: {
                             sink.next(paymentOrder);
+                            break;
                         }
                         case SUCCESS: {
-                            sink.error(new PaymentAlreadyProcessedException(PaymentStatus.SUCCESS, "이미 처리된 결제 입니다."));
+                            sink.error(new PaymentAlreadyProcessedException(PaymentStatus.SUCCESS, "이미 처리된 결제 입니다.")); break;
                         }
                         case FAILURE: {
-                            sink.error(new PaymentAlreadyProcessedException(PaymentStatus.FAILURE, "이미 에러 처리된 결제 입니다."));
+                            sink.error(new PaymentAlreadyProcessedException(PaymentStatus.FAILURE, "이미 에러 처리된 결제 입니다.")); break;
                         }
                     }
                 }).map(m -> (Pair<Long, PaymentStatus>) m).collectList();

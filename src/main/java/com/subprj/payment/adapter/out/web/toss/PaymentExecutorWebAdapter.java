@@ -6,10 +6,12 @@ import com.subprj.payment.application.port.out.PaymentExecutorPort;
 import com.subprj.payment.domain.PaymentConfirmCommand;
 import com.subprj.payment.domain.PaymentExecutionResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @WebAdapter
+@Component
 public class PaymentExecutorWebAdapter implements PaymentExecutorPort {
     private final PaymentExecutor paymentExecutor;
 
