@@ -44,6 +44,7 @@ public class PaymentExecutionResult {
         }
     }
 
+    @Getter
     public static class PaymentExtraDetails {
         private PaymentType type;
         private PaymentMethod method;

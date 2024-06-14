@@ -30,16 +30,52 @@ public class R2DBCPaymentStatusUpdateRepository implements PaymentStatusUpdateRe
                 .thenReturn(true);
     }
 
-    private Mono<Boolean> updatePaymentStatusToUnknown(PaymentStatusUpdateCommand command) {
-        return null;
+    private Mono<Boolean> updatePaymentStatusToSuccess(PaymentStatusUpdateCommand command) {
+        return selectPaymentOrderStatus(command.getOrderId())
+                .collectList()
+                .flatMap( v -> insertPaymentHistory(v, command.getStatus(), "PAYMENT_CONFIRMATION_DONE"))
+                .flatMap( v-> updatePaymentOrderStatus(command.getOrderId(), command.getStatus()))
+                .flatMap( v-> updatePaymentEventExtraDetails(command))
+                .as(transactionalOperator::transactional)
+                .thenReturn(true);
     }
 
     private Mono<Boolean> updatePaymentStatusToFailure(PaymentStatusUpdateCommand command) {
-        return null;
+        return selectPaymentOrderStatus(command.getOrderId())
+                .collectList()
+                .flatMap(v -> insertPaymentHistory(v, command.getStatus(), command.getFailure().toString()))
+                .flatMap(v -> updatePaymentOrderStatus(command.getOrderId(), command.getStatus()))
+                .as(transactionalOperator::transactional)
+                .thenReturn(true);
     }
 
-    private Mono<Boolean> updatePaymentStatusToSuccess(PaymentStatusUpdateCommand command) {
-        return null;
+
+    private Mono<Boolean> updatePaymentStatusToUnknown(PaymentStatusUpdateCommand command) {
+        return selectPaymentOrderStatus(command.getOrderId())
+                .collectList()
+                .flatMap(v -> insertPaymentHistory(v, command.getStatus(), "UNKNOWN"))
+                .flatMap(v -> updatePaymentOrderStatus(command.getOrderId(), command.getStatus()))
+                .flatMap(v-> increamentPaymentOrderFailedCount(command))
+                .as(transactionalOperator::transactional)
+                .thenReturn(true);
+    }
+
+    private Mono<Long> increamentPaymentOrderFailedCount(PaymentStatusUpdateCommand command) {
+        return databaseClient.sql(Query.INCREMENT_PAYMENT_ORDER_FAILED_COUNT_QUERY)
+                .bind("orderId", command.getOrderId())
+                .fetch()
+                .rowsUpdated();
+    }
+
+    private Mono<Long> updatePaymentEventExtraDetails(PaymentStatusUpdateCommand command) {
+        return databaseClient.sql(Query.UPDATE_PAYMENT_EVENT_EXTRA_DETAILS_QUERY)
+                .bind("orderName", command.getPaymentExtraDetails().getOrderName())
+                .bind("method", command.getPaymentExtraDetails().getMethod().name())
+                .bind("approvedAt", command.getPaymentExtraDetails().getApprovedAt().toString())
+                .bind("orderId" , command.getOrderId())
+                .bind("type", command.getPaymentExtraDetails().getType())
+                .fetch()
+                .rowsUpdated();
     }
 
 
@@ -142,6 +178,19 @@ public class R2DBCPaymentStatusUpdateRepository implements PaymentStatusUpdateRe
                 UPDATE payment_events
                 SET payment_key = :paymentKey
                 WHERE order_id = :orderId
+                """.trim();
+
+        static String UPDATE_PAYMENT_EVENT_EXTRA_DETAILS_QUERY = """
+                UPDATE payment_events
+                SET order_name = :orderName, method = :method, approved_at = :approvedAt, type = :type, updated_at = CURRENT_TIMESTAMP 
+                WHERE order_id = :orderId
+                """.trim();
+
+        static String INCREMENT_PAYMENT_ORDER_FAILED_COUNT_QUERY = """
+                UPDATE payment_orders
+                SET failed_count = failed_count + 1
+                WHERE order_id = :orderId
+              
                 """.trim();
     }
 

@@ -33,7 +33,11 @@ public class PaymentConfirmService implements PaymentConfirmUseCase {
                                 .paymentExtraDetails(v.getExtraDetails())
                                 .failure(v.getFailure())
                                 .build()
-                )).map(v -> new PaymentConfirmResult())
-        ;
+                ).thenReturn(v)
+                )
+                .map(v -> PaymentConfirmResult.builder()
+                        .status(v.getPaymentStatus())
+                        .failure(v.getFailure())
+                        .build());
     }
 }
